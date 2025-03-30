@@ -37,16 +37,24 @@ export async function generateCompletion(args: GenerateCompletionArgs): Promise<
         toolParams,
     } = args;
 
+    // 檢查 OpenAI API 金鑰
     const openaiKey = process.env.OPENAI_API_KEY;
     if (!openaiKey) {
+        console.error("OpenAI API key is not configured. Please set OPENAI_API_KEY in your environment variables.");
         throw new Error("OpenAI API key is not configured");
     }
 
-    const openai = new OpenAI({ apiKey: openaiKey });
+    // 檢查金鑰格式
+    if (!openaiKey.startsWith('sk-')) {
+        console.warn("The OpenAI API key format looks incorrect. Please verify it is correct.");
+    }
 
-    const isReadoningModel = model.includes("o3") || model.includes("o1")
-
+    // 創建 OpenAI 實例
     try {
+        const openai = new OpenAI({ apiKey: openaiKey });
+        
+        const isReadoningModel = model.includes("o3") || model.includes("o1");
+
         const response = await openai.chat.completions.create({
             model,
             messages: chat,

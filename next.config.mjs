@@ -7,6 +7,7 @@ const nextConfig = {
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
     NEXT_PUBLIC_APP_VERSION: process.env.NEXT_PUBLIC_APP_VERSION,
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
   },
   // 禁用 eslint 檢查，如果有需要的話
   eslint: {
