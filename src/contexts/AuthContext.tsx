@@ -16,6 +16,7 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<boolean>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<boolean>;
   clearError: () => void;
+  handleOAuthCallback: () => Promise<UserProfile | null>;
 }
 
 // 創建上下文
@@ -262,6 +263,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, authServic
     setError(null);
   };
 
+  // 處理 OAuth 回調
+  const handleOAuthCallbackExposed = async (): Promise<UserProfile | null> => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const user = await authService.handleOAuthCallback();
+      if (user) {
+        setUser(user);
+        setUserData(user);
+      }
+      return user;
+    } catch (err: any) {
+      const errorMessage = err.message || '處理社交登入回調時發生錯誤。';
+      setError(errorMessage);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 上下文值
   const contextValue: AuthContextType = {
     user,
@@ -274,7 +296,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, authServic
     updateProfile,
     resetPassword,
     changePassword,
-    clearError
+    clearError,
+    handleOAuthCallback: handleOAuthCallbackExposed
   };
 
   return (

@@ -14,7 +14,10 @@ import {
   InputRightElement, 
   Button, 
   Checkbox, 
-  Divider 
+  Divider,
+  useToast,
+  Alert,
+  AlertIcon
 } from '@chakra-ui/react';
 import { 
   IconMail, 
@@ -27,21 +30,106 @@ import {
 } from '@tabler/icons-react';
 import { kStyleGlobal } from '../../theme';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { setToken, setUserData } from '../../utils/localStorage';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
   const navigate = useNavigate();
+  const toast = useToast();
+  const { login, socialLogin, error, clearError } = useAuth();
 
-  const handleLogin = () => {
-    navigate('/ai-assistant-setup');
+  const handleLogin = async () => {
+    if (!email || !password) {
+      toast({
+        title: '請填寫完整資訊',
+        description: '電子郵件和密碼不能為空',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const success = await login(email, password);
+      
+      if (success) {
+        toast({
+          title: '登入成功',
+          description: '歡迎回來！',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        
+        if (rememberMe) {
+          // 將登入信息保存到本地存儲（僅保存電子郵件，密碼仍需每次手動輸入）
+          localStorage.setItem('savedEmail', email);
+        }
+
+        // 導航到主頁或應用程序的主界面
+        navigate('/chat-list');
+      }
+    } catch (err) {
+      console.error('登入時出錯:', err);
+      toast({
+        title: '登入失敗',
+        description: error || '請檢查您的憑證並重試',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleOAuthLogin = (provider: string) => {
-    navigate(`/oauth/${provider}`);
+  const handleOAuthLogin = async (provider: 'google' | 'facebook' | 'apple') => {
+    try {
+      clearError();
+      setIsLoading(true);
+      const success = await socialLogin(provider);
+      
+      if (!success) {
+        toast({
+          title: '登入失敗',
+          description: `無法使用 ${provider} 登入，請稍後再試`,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+      // 社交登入成功後，用戶將被重定向到OAuth提供商，
+      // 成功後將返回應用，並在AuthContext中處理
+    } catch (err) {
+      console.error(`${provider} 登入失敗:`, err);
+      toast({
+        title: '登入失敗',
+        description: `無法使用 ${provider} 登入，請稍後再試`,
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  // 檢查本地存儲是否有保存的電子郵件
+  React.useEffect(() => {
+    const savedEmail = localStorage.getItem('savedEmail');
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   return (
     <ChakraProvider theme={kStyleGlobal}>
@@ -74,7 +162,7 @@ const Login: React.FC = () => {
               fontWeight="bold"
               mb={4}
             >
-              欢迎使用 ChatterMind
+              歡迎使用 Chat-With-You
             </Text>
           </Flex>
           <Box
@@ -83,6 +171,13 @@ const Login: React.FC = () => {
             p={8}
             boxShadow="lg"
           >
+            {error && (
+              <Alert status="error" mb={4} borderRadius="md">
+                <AlertIcon />
+                {error}
+              </Alert>
+            )}
+            
             <FormControl>
               <Flex direction="column" gap={4}>
                 <InputGroup>
@@ -94,7 +189,7 @@ const Login: React.FC = () => {
                   </InputLeftElement>
                   <Input
                     type="email"
-                    placeholder="邮箱地址"
+                    placeholder="電子郵件地址"
                     pl={12}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -109,11 +204,16 @@ const Login: React.FC = () => {
                   </InputLeftElement>
                   <Input
                     type={showPassword ? "text" : "password"}
-                    placeholder="密码"
+                    placeholder="密碼"
                     pl={12}
                     pr={12}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleLogin();
+                      }
+                    }}
                   />
                   <InputRightElement>
                     <Button
@@ -137,22 +237,25 @@ const Login: React.FC = () => {
                     isChecked={rememberMe}
                     onChange={() => setRememberMe(!rememberMe)}
                   >
-                    记住我
+                    記住我
                   </Checkbox>
                   <Button
                     variant="ghost"
                     color="primary.500"
                     onClick={() => navigate('/forgot-password')}
                   >
-                    忘记密码？
+                    忘記密碼？
                   </Button>
                 </Flex>
                 <Button
                   w="100%"
                   size="lg"
                   onClick={handleLogin}
+                  isLoading={isLoading}
+                  loadingText="登入中..."
+                  colorScheme="green"
                 >
-                  登录
+                  登入
                 </Button>
               </Flex>
             </FormControl>
@@ -163,7 +266,7 @@ const Login: React.FC = () => {
             >
               <Divider flex={1} />
               <Text color="gray.500">
-                其他登录方式
+                其他登入方式
               </Text>
               <Divider flex={1} />
             </Flex>
@@ -175,6 +278,7 @@ const Login: React.FC = () => {
                 variant="ghost"
                 borderRadius="full"
                 onClick={() => handleOAuthLogin('facebook')}
+                isDisabled={isLoading}
               >
                 <IconBrandFacebook size={24} />
               </Button>
@@ -182,6 +286,7 @@ const Login: React.FC = () => {
                 variant="ghost"
                 borderRadius="full"
                 onClick={() => handleOAuthLogin('google')}
+                isDisabled={isLoading}
               >
                 <IconBrandGoogle size={24} />
               </Button>
@@ -189,6 +294,7 @@ const Login: React.FC = () => {
                 variant="ghost"
                 borderRadius="full"
                 onClick={() => handleOAuthLogin('apple')}
+                isDisabled={isLoading}
               >
                 <IconBrandApple size={24} />
               </Button>
@@ -200,14 +306,14 @@ const Login: React.FC = () => {
             gap={2}
           >
             <Text color="gray.600">
-              还没有账号？
+              還沒有帳號？
             </Text>
             <Button
               variant="ghost"
               color="primary.500"
               onClick={() => navigate('/register')}
             >
-              立即注册
+              立即註冊
             </Button>
           </Flex>
         </Box>

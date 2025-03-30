@@ -1,6 +1,6 @@
 //@ts-nocheck
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChakraProvider, 
   Flex, 
@@ -10,37 +10,63 @@ import {
   InputLeftElement, 
   Input, 
   Avatar, 
-  Circle 
+  Circle,
+  Box
 } from '@chakra-ui/react';
-import { IconPlus, IconSearch } from '@tabler/icons-react';
+import { IconPlus, IconSearch, IconUser } from '@tabler/icons-react';
 import { kStyleGlobal } from '../../theme';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../../services/supabase';
 
 const ChatList = () => {
   const [showEmptyState, setShowEmptyState] = useState(false);
+  const [userProfile, setUserProfile] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // 載入用戶資料
+    const loadUserProfile = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setUserProfile(user);
+        }
+      } catch (error) {
+        console.error('載入用戶資料失敗:', error);
+      }
+    };
+    
+    loadUserProfile();
+  }, []);
 
   const chats = [
     {
       "avatar": "https://images.unsplash.com/photo-1494790108377-be9c29b29330",
-      "name": "小明",
-      "lastMessage": "好的,下次见!",
-      "time": "14:30",
+      "name": "Alice",
+      "lastMessage": "嗨！最近好嗎？",
+      "time": "10:30",
       "unread": 2
     },
     {
       "avatar": "https://images.unsplash.com/photo-1599566150163-29194dcaad36",
-      "name": "工作群",
-      "lastMessage": "项目进度更新...",
-      "time": "13:45",
-      "unread": 5
+      "name": "Bob",
+      "lastMessage": "我剛剛發送了文件給你",
+      "time": "昨天",
+      "unread": 0
     },
     {
-      "avatar": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde",
-      "name": "家人群",
-      "lastMessage": "晚上吃什么?",
-      "time": "12:20",
-      "unread": 0
+      "avatar": "A",
+      "name": "AI 助手",
+      "lastMessage": "有什麼我可以幫助你的？",
+      "time": "週一",
+      "unread": 1
+    },
+    {
+      "avatar": "工",
+      "name": "工作群組",
+      "lastMessage": "會議時間更改到下午3點",
+      "time": "週日",
+      "unread": 5
     }
   ];
 
@@ -48,8 +74,12 @@ const ChatList = () => {
     navigate('/add-contact');
   };
 
-  const handleChatClick = () => {
-    navigate('/chat');
+  const handleChatClick = (index) => {
+    navigate('/chat/' + index);
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
   };
 
   return (
@@ -70,14 +100,31 @@ const ChatList = () => {
             fontSize="18px"
             fontWeight="600"
           >
-            聊天列表
+            最近對話
           </Text>
-          <Button
-            variant="ghost"
-            onClick={handleAddContact}
-          >
-            <IconPlus size={24} />
-          </Button>
+          <Flex gap={3}>
+            <Button
+              variant="ghost"
+              onClick={handleAddContact}
+              p={0}
+            >
+              <IconPlus size={24} />
+            </Button>
+            <Box 
+              onClick={handleProfileClick}
+              cursor="pointer"
+            >
+              {userProfile?.avatar_url ? (
+                <Avatar 
+                  size="sm" 
+                  src={userProfile.avatar_url} 
+                  name={userProfile.name || "用戶"}
+                />
+              ) : (
+                <IconUser size={24} />
+              )}
+            </Box>
+          </Flex>
         </Flex>
 
         <InputGroup p={4}>
@@ -121,13 +168,13 @@ const ChatList = () => {
               fontWeight="500"
               color="gray.600"
             >
-              开始你的第一次聊天吧！
+              開始你的第一次聊天吧！
             </Text>
             <Button
               colorScheme="primary"
               onClick={handleAddContact}
             >
-              开始聊天
+              開始聊天
             </Button>
           </Flex>
         ) : (
@@ -146,7 +193,7 @@ const ChatList = () => {
                 p={3}
                 borderRadius="xl"
                 bg="white"
-                onClick={handleChatClick}
+                onClick={() => handleChatClick(index)}
                 _hover={{
                   bg: "gray.50"
                 }}
@@ -158,6 +205,7 @@ const ChatList = () => {
                 >
                   <Avatar
                     src={chat.avatar}
+                    name={chat.name}
                     size="md"
                   />
                   <Flex direction="column">

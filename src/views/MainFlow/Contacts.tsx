@@ -1,6 +1,6 @@
 //@ts-nocheck
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChakraProvider, 
   Flex, 
@@ -13,17 +13,39 @@ import {
   Avatar, 
   Badge 
 } from '@chakra-ui/react';
-import { IconPlus, IconSearch } from '@tabler/icons-react';
+import { IconPlus, IconSearch, IconUser } from '@tabler/icons-react';
 import { kStyleGlobal } from '../../theme';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../../services/supabase';
 
 const Contacts = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLetter, setSelectedLetter] = useState("A");
+  const [userProfile, setUserProfile] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // 載入用戶資料
+    const loadUserProfile = async () => {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setUserProfile(user);
+        }
+      } catch (error) {
+        console.error('載入用戶資料失敗:', error);
+      }
+    };
+    
+    loadUserProfile();
+  }, []);
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
   };
 
   return (
@@ -45,14 +67,31 @@ const Contacts = () => {
             fontSize="18px"
             fontWeight="600"
           >
-            联系人
+            聯絡人
           </Text>
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/add-contact")}
-          >
-            <IconPlus size={24} />
-          </Button>
+          <Flex gap={3}>
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/add-contact")}
+              p={0}
+            >
+              <IconPlus size={24} />
+            </Button>
+            <Box 
+              onClick={handleProfileClick}
+              cursor="pointer"
+            >
+              {userProfile?.avatar_url ? (
+                <Avatar 
+                  size="sm" 
+                  src={userProfile.avatar_url} 
+                  name={userProfile.name || "用戶"}
+                />
+              ) : (
+                <IconUser size={24} />
+              )}
+            </Box>
+          </Flex>
         </Flex>
         
         <Box px={4} py={3}>
@@ -68,7 +107,7 @@ const Contacts = () => {
             </InputLeftElement>
             <Input
               pl={12}
-              placeholder="搜索联系人"
+              placeholder="搜索聯絡人"
               borderRadius="full"
               bg="gray.50"
             />
@@ -120,13 +159,13 @@ const Contacts = () => {
                         fontWeight="500"
                         marginBottom="4px"
                       >
-                        {`联系人 ${letter}${i}`}
+                        {`聯絡人 ${letter}${i}`}
                       </Text>
                       <Text
                         fontSize="14px"
                         color="gray.500"
                       >
-                        最近一条消息预览...
+                        最近一條消息預覽...
                       </Text>
                     </Flex>
                     {i === 1 && (

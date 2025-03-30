@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // 從環境變量獲取Supabase配置
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://default-url.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'default-anon-key';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://default-url.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'default-anon-key';
 
 // 創建Supabase客戶端
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

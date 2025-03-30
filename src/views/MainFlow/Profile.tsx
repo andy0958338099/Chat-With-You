@@ -1,6 +1,6 @@
 //@ts-nocheck
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ChakraProvider, 
   Box, 
@@ -14,8 +14,10 @@ import {
   ModalContent, 
   ModalHeader, 
   ModalBody, 
-  ModalFooter, 
-  Input 
+  ModalFooter,
+  Input,
+  useToast,
+  Spinner
 } from '@chakra-ui/react';
 import { 
   IconCopy, 
@@ -25,18 +27,111 @@ import {
   IconSettings, 
   IconPlus, 
   IconShare, 
-  IconHelp 
+  IconHelp,
+  IconLogout
 } from '@tabler/icons-react';
 import { kStyleGlobal } from '../../theme';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUser, signOut } from '../../services/supabase';
+import { UserProfile } from '../../services/supabase';
 
 const Profile = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const navigate = useNavigate();
+  const toast = useToast();
+  const inviteCode = "CWY" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+  useEffect(() => {
+    // 載入用戶資料
+    const loadUserProfile = async () => {
+      try {
+        setIsLoading(true);
+        const user = await getCurrentUser();
+        if (user) {
+          setUserProfile(user);
+        } else {
+          // 若未登入則重定向到登入頁
+          navigate('/login');
+        }
+      } catch (error) {
+        toast({
+          title: '載入資料失敗',
+          description: '無法載入您的個人資料，請稍後再試',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        console.error('載入用戶資料失敗:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadUserProfile();
+  }, [navigate, toast]);
 
   const goToNavigation = (path: string) => {
     navigate(path);
   };
+
+  const handleLogout = async () => {
+    try {
+      const success = await signOut();
+      if (success) {
+        toast({
+          title: '登出成功',
+          status: 'success',
+          duration: 3000,
+          isClosable: true,
+        });
+        navigate('/login');
+      } else {
+        toast({
+          title: '登出失敗',
+          description: '請稍後再試',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: '發生錯誤',
+        description: '登出時發生錯誤，請稍後再試',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+      console.error('登出錯誤:', error);
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: '已複製到剪貼簿',
+      status: 'success',
+      duration: 2000,
+      isClosable: true,
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <ChakraProvider theme={kStyleGlobal}>
+        <Flex 
+          justify="center" 
+          align="center" 
+          minH="100vh" 
+          bg="background"
+        >
+          <Spinner size="xl" color="primary.500" />
+        </Flex>
+      </ChakraProvider>
+    );
+  }
 
   return (
     <ChakraProvider theme={kStyleGlobal}>
@@ -61,7 +156,8 @@ const Profile = () => {
             >
               <Avatar
                 size="lg"
-                src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde"
+                src={userProfile?.avatar_url || "https://bit.ly/broken-link"}
+                name={userProfile?.name || "用戶"}
                 cursor="pointer"
                 onClick={() => goToNavigation("/edit-profile")}
               />
@@ -73,20 +169,23 @@ const Profile = () => {
                   fontSize="xl"
                   fontWeight="bold"
                 >
-                  张三
+                  {userProfile?.name || "未知用戶"}
                 </Text>
                 <Flex
                   align="center"
                   gap={2}
+                  cursor="pointer"
+                  onClick={() => copyToClipboard(userProfile?.id || "")}
                 >
                   <Text
                     color="gray.500"
+                    fontSize="sm"
                   >
-                    ID: 12345678
+                    ID: {userProfile?.id ? userProfile.id.substring(0, 8) + '...' : '未知'}
                   </Text>
                   <IconCopy
                     size={16}
-                    color="gray.500"
+                    color="gray"
                   />
                 </Flex>
               </Flex>
@@ -118,7 +217,7 @@ const Profile = () => {
                 color="gray.500"
                 fontSize="sm"
               >
-                3个
+                {userProfile?.aiAssistants ? userProfile.aiAssistants.length : 0}個
               </Text>
             </Flex>
             <Flex
@@ -132,13 +231,13 @@ const Profile = () => {
             >
               <IconCoin size={24} />
               <Text mt={2}>
-                账单与订阅
+                帳單與訂閱
               </Text>
               <Text
                 color="gray.500"
                 fontSize="sm"
               >
-                1000积分
+                {userProfile?.credits || 0}積分
               </Text>
             </Flex>
             <Flex
@@ -152,7 +251,7 @@ const Profile = () => {
             >
               <IconSettings size={24} />
               <Text mt={2}>
-                设置
+                設定
               </Text>
             </Flex>
           </Grid>
@@ -172,7 +271,7 @@ const Profile = () => {
               justifyContent="flex-start"
               onClick={() => goToNavigation("/create-ai-assistant")}
             >
-              创建AI助手
+              建立AI助手
             </Button>
             <Button
               leftIcon={<IconShare />}
@@ -180,24 +279,25 @@ const Profile = () => {
               justifyContent="flex-start"
               onClick={() => setIsModalOpen(true)}
             >
-              邀请好友
+              邀請好友
             </Button>
             <Button
               leftIcon={<IconHelp />}
               variant="ghost"
               justifyContent="flex-start"
-              onClick={() => goToNavigation("/help")}
+              onClick={() => goToNavigation("/ai-assistant-setup")}
             >
-              帮助中心
+              幫助中心
             </Button>
           </Flex>
           <Button
+            leftIcon={<IconLogout />}
             colorScheme="red"
             variant="outline"
             mt={4}
-            onClick={() => goToNavigation("/login")}
+            onClick={handleLogout}
           >
-            退出登录
+            登出
           </Button>
           <Modal
             isOpen={isModalOpen}
@@ -206,7 +306,7 @@ const Profile = () => {
             <ModalOverlay />
             <ModalContent>
               <ModalHeader>
-                邀请好友
+                邀請好友
               </ModalHeader>
               <ModalBody>
                 <Flex
@@ -214,21 +314,30 @@ const Profile = () => {
                   gap={4}
                 >
                   <Input
-                    value="INVITE123"
+                    value={inviteCode}
                     isReadOnly
+                    onClick={() => copyToClipboard(inviteCode)}
                   />
                   <Text
                     color="gray.500"
                   >
-                    分享此邀请码给你的好友
+                    分享此邀請碼給你的好友，雙方可獲得500積分獎勵
                   </Text>
                 </Flex>
               </ModalBody>
               <ModalFooter>
                 <Button
+                  colorScheme="blue"
+                  mr={3}
+                  onClick={() => copyToClipboard(inviteCode)}
+                >
+                  複製邀請碼
+                </Button>
+                <Button
+                  variant="ghost"
                   onClick={() => setIsModalOpen(false)}
                 >
-                  关闭
+                  關閉
                 </Button>
               </ModalFooter>
             </ModalContent>
