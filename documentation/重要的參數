@@ -1,0 +1,35 @@
+# API 密鑰暫存檔案 (請勿上傳至版本控制系統)
+
+# Supabase 配置
+SUPABASE_URL=https://tfoszbtbrhyecfykymka.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmb3N6YnRicmh5ZWNmeWt5bWthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMyNDM3OTcsImV4cCI6MjA1ODgxOTc5N30.qjcxUtU9WGghjSMPjnSnALkJcWpsxpgKqHQxUHIK3pY
+SUPABASE_SERVICE_ROLE_KEY=
+
+# OAuth 提供商密鑰
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+FACEBOOK_APP_ID=
+FACEBOOK_APP_SECRET=
+APPLE_CLIENT_ID=
+APPLE_CLIENT_SECRET=
+
+# LLM API 密鑰
+DEEPSEEK_API_KEY=sk-8751143f6d784324898b0146bf7ce3f4
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+
+# 檔案存儲
+CLOUDINARY_URL=cloudinary://167262225191772:Arf3FdWfXgDRNhQ1tJ7DBcMq2dg@dbusoeqfk
+
+# 支付處理
+STRIPE_PUBLIC_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+
+# 其他環境參數
+NODE_ENV=development
+NEXTAUTH_SECRET=
+NEXTAUTH_URL=http://localhost:3000
+
+# 注意：使用此文件僅作為暫存，實際應用中應將這些值複製到 .env 檔案
+# 並確保 .env 檔案已被添加到 .gitignore 中避免意外上傳

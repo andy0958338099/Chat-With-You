@@ -1,0 +1,135 @@
+---
+description: Project documentation rules
+globs: 
+alwaysApply: false
+---
+Always refer to @project_requirement_document.md for the project requirements and @app_flow_document.md for the flow of the app. Unless the user says otherwise or has defined new requirements or additional flow.
+## Project Overview
+
+*   **Type:** Multi-platform Community Chat Application
+*   **Description:** "Chat with Me" is a multi-platform (Android, iOS, and Web) community chat application featuring an Apple-inspired UI. It integrates multiple login methods, real-time messaging, AI-assisted features, customizable AI bots, friend management, and a secure payment system for AI usage.
+*   **Primary Goal:** Deliver an engaging, real-time communication platform enhanced by AI features while maintaining a minimalist, Apple-inspired design.
+
+## Project Structure
+
+### Framework-Specific Routing
+
+*   **Directory Rules:**
+
+    *   Next.js 14 App Router: Enforce `app/[route]/page.tsx` conventions for nested routing and server actions.
+    *   Example 1: "Next.js 14 (App Router)" → `app/[route]/page.tsx` conventions
+    *   Example 2: "Next.js (Pages Router)" → `pages/[route].tsx` pattern
+    *   Example 3: "React Router 6" → `src/routes/` with `createBrowserRouter`
+
+### Core Directories
+
+*   **Versioned Structure:**
+
+    *   `app/api`: Next.js 14 API routes with Route Handlers for backend services.
+    *   `app/auth`: Authentication components leveraging server actions and secure login flows.
+    *   `app/dashboard`: Contains layout and dashboard-specific components for user management and admin interfaces.
+
+### Key Files
+
+*   **Stack-Versioned Patterns:**
+
+    *   `app/dashboard/layout.tsx`: Next.js 14 root layouts for a consistent dashboard experience.
+    *   `pages/_app.js`: (For legacy or fallback routing if Pages Router is required; otherwise, adhere to App Router rules.)
+
+## Tech Stack Rules
+
+*   **Version Enforcement:**
+
+    *   next@14: Must use App Router with the `app/` directory and nested route folders. Avoid usage of `getInitialProps` and mixing with Pages Router patterns.
+    *   expo@latest: Follow Expo's managed workflow for cross-platform mobile development.
+    *   typescript@latest: Enforce strict typing with consistent use of type annotations.
+    *   tailwindcss@latest: Apply utility-first CSS principles with custom configurations for responsive, minimalist design.
+    *   shadcn-ui@latest: Utilize pre-built UI components while adhering to design guidelines for a clean, Apple-inspired interface.
+
+## PRD Compliance
+
+*   **Non-Negotiable:**
+
+    *   "Chat with Me" must support multiple login methods (including Facebook, Google, and Apple), provide real-time messaging with AI assistance, and maintain an ultra-clean, minimalist design in line with Apple UI standards. Security, offline support, and compliance with financial regulations for payment integrations are mandatory.
+
+## App Flow Integration
+
+*   **Stack-Aligned Flow:**
+
+    *   Next.js 14 Auth Flow → `app/auth/login/page.tsx` leverages server actions for secure multi-provider login.
+    *   Chat functionalities are integrated via routes such as `app/chat/[chatId]/page.tsx`, ensuring real-time messaging and synchronized data flow.
+
+## Best Practices
+
+*   Next.js
+    *   Use server components where applicable to optimize performance.
+    *   Maintain clear separation between client and server components in the App Router.
+    *   Consistently enforce directory and routing conventions to avoid mixing legacy patterns.
+
+*   TypeScript
+    *   Enable strict mode and comprehensive type-checking.
+    *   Adopt interfaces and utility types to ensure robust type safety.
+    *   Regularly update type definitions in sync with library updates.
+
+*   Tailwind CSS
+    *   Apply utility-first styling to rapidly develop responsive layouts.
+    *   Configure custom themes and maintain consistency through design tokens.
+    *   Optimize build performance with purge settings to remove unused styles.
+
+*   Shadcn UI
+    *   Leverage pre-built components to maintain design consistency.
+    *   Customize with Tailwind CSS overrides as needed.
+    *   Keep design language aligned with Apple-inspired minimalism.
+
+*   Expo
+    *   Utilize Expo’s managed workflow to streamline cross-platform development.
+    *   Integrate device-specific features using Expo APIs.
+    *   Rigorously test on both Android and iOS to ensure feature parity.
+
+*   Xcode
+    *   Follow Apple’s Human Interface Guidelines for optimal iOS design.
+    *   Use latest SDKs and build configurations for iOS-specific optimizations.
+    *   Maintain separate configuration profiles for development and production builds.
+
+*   Supabase
+    *   Utilize real-time data capabilities for messaging features.
+    *   Secure endpoints with appropriate Row Level Security (RLS) policies.
+    *   Continuously monitor and backup databases to prevent data loss.
+
+*   Clerk Auth
+    *   Integrate multi-provider authentication seamlessly.
+    *   Validate OAuth tokens and manage edge cases securely.
+    *   Enforce best practices in session management and error handling.
+
+*   OpenAI API & Deepseek API
+    *   Monitor and optimize API usage to abide by rate limits.
+    *   Store API keys securely using environment variables.
+    *   Optimize request payloads to ensure low latency communication.
+
+*   Cloudinary
+    *   Configure secure asset upload and transformation processes.
+    *   Utilize environment variables to handle sensitive configuration keys.
+    *   Optimize asset delivery through CDN integration.
+
+*   Payment Systems (街口支付/Line Pay)
+    *   Ensure compliance with regional financial regulations.
+    *   Implement secure, token-based transaction flows.
+    *   Regularly update integration libraries to maintain security standards.
+
+*   GitHub
+    *   Adopt branching strategies to manage feature development efficiently.
+    *   Enforce strict code review processes before merging.
+    *   Maintain detailed commit histories for traceability.
+
+*   Netlify
+    *   Configure automated deployment pipelines for continuous delivery.
+    *   Manage environment variables securely within the deployment settings.
+    *   Monitor deployment logs to quickly identify and resolve issues.
+
+## Rules
+
+*   Derive folder/file patterns **directly** from techStackDoc versions.
+*   If Next.js 14 App Router: Enforce `app/` directory with nested route folders.
+*   If Pages Router: Use `pages/*.tsx` flat structure.
+*   Mirror this logic for React Router, SvelteKit, etc.
+*   Never mix version patterns (e.g., no `pages/` in App Router projects).
